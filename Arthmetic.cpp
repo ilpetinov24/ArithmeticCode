@@ -158,11 +158,10 @@ string ArithmeticEncoding(const string& sourceText, const vector<char>& alphabet
 }
 
 
-uint32_t Read16Bit(const string& encode) {
+uint32_t Read16Bit(const string& encode, int& bitsCount) {
     uint32_t value = 0;
     uint16_t mask = 1;
     int bitsInEncode = encode.length();
-    int bitsCount = 0;
 
     for (int i = 15; i >= 0; i--) {
         // Если в закодированном файле меньше 16 битов
@@ -197,25 +196,32 @@ int AddBit(const string& encode, int value, int currentBit, bool& flag) {
 }
 
 
+/* Функция арифметического декодирования */
 string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, const vector<uint32_t> frequency) {
     string decode = "";
     int bitsInEncode = encode.length();
+
     uint32_t low = 0;
     uint32_t high = HIGH - 1;
     uint32_t value = 0;
     uint32_t range = 0;
+    
     uint32_t frequence = 0;
     uint32_t del = frequency[alphabet.size() - 1];
-    value = Read16Bit(encode);
-    // cout << value << endl;
+    
     int currentBit = 0;
+    value = Read16Bit(encode, currentBit);
+    int notReadBits = 16 - currentBit;
+
+    for (int i = 0; i < notReadBits; i++) {
+        value *= 2;
+    }
+
     bool flag = false;
-
-
-    while (true) {
+    
+    for (int i = 1; i < del; i++) {
         range = high - low + 1;
         frequence = (((value - low) + 1) * del - 1) / range;
-
         int symbolIndex = 0;
         for (symbolIndex = 1; frequency[symbolIndex] <= frequence; symbolIndex++);
 
@@ -224,15 +230,15 @@ string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, co
 
         decode += alphabet[symbolIndex];
 
-        // cout << endl;
-        // cout << decode << endl;
+        cout << endl;
+        cout << decode << endl;
         // cout << value << endl;
-        // cout << alphabet[symbolIndex] << endl;
+        cout << alphabet[symbolIndex] << endl;
         // cout << currentBit << endl;
 
-        if (alphabet[symbolIndex] == BREAK_SYMBOL) {
+        // Проверка на последний символ
+        if (alphabet[symbolIndex] == BREAK_SYMBOL)
             return decode;
-        }
 
         for (;;) {
             if (high < HALF) {
@@ -261,8 +267,8 @@ string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, co
 
 
 int main() {
-    string text = "joasdfasdf";
-    text.push_back(BREAK_SYMBOL);
+    string text = "a";
+    text.push_back(BREAK_SYMBOL); 
 
     vector<char> al = GetAlphabet(text);
     vector<uint32_t> freq = GetFrequency(text);
