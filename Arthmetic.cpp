@@ -1,8 +1,10 @@
 #include <bitset>
+#include <cstddef>
 #include <iostream>
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <fstream>
 
 #define BREAK_SYMBOL  '\0'
 #define EOF_SYMBOL    '-'
@@ -230,10 +232,10 @@ string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, co
 
         decode += alphabet[symbolIndex];
 
-        cout << endl;
-        cout << decode << endl;
+        // cout << endl;
+        // cout << decode << endl;
         // cout << value << endl;
-        cout << alphabet[symbolIndex] << endl;
+        // cout << alphabet[symbolIndex] << endl;
         // cout << currentBit << endl;
 
         // Проверка на последний символ
@@ -266,22 +268,183 @@ string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, co
 }
 
 
+// Функция для записи закодированных данных в файл
+void WriteToFile(const string& encode, ofstream& out, const vector<char>& alphabet, const vector<uint32_t>& freq) {
+    unsigned char byte = 0;
+    unsigned char mask = 1;
+    size_t counter = 0;
+
+    ofstream wtmpFile("tmp.txt");
+    
+    counter = 0;
+    for (int i = 0; i < encode.size(); i++) {
+        byte <<= mask;
+        
+        if (encode[i] == '1')
+            byte |= mask;
+
+        counter++;
+
+        if (counter == 8) {
+            wtmpFile.put(byte);
+            byte = 0;
+            counter = 0;
+        }
+    }
+
+    // Обработка не записанных битов
+    if (counter > 0) {
+        byte <<= (8 - counter); // Дополнение до байта
+        wtmpFile.put(byte);
+    }
+
+    wtmpFile.close();
+    ifstream rtmpFile("tmp.txt");
+
+    out << counter << "|";
+
+    for (int i = 0; i < alphabet.size() - 1; i++) {
+        if (alphabet[i] == '\n') {
+            out << "--" << ':' << freq[i] << '|';
+            continue;
+        }
+        out << alphabet[i] << ":" << freq[i] << '|';
+    }
+    out << alphabet[alphabet.size() - 1] << ":" << freq[alphabet.size() - 1];
+
+    out << "\n";
+
+    char cur;
+    while (rtmpFile.get(cur))
+        out << cur;
+
+    rtmpFile.close();
+    remove("tmp.txt");
+}
+
+
+string ReadInFile(ifstream& file, vector<char>& alphabet, vector<uint32_t>& freq) {
+    string encode = "";
+    unsigned char byte;
+    unsigned char mask = 1;
+    size_t counter;
+    string table = "";
+    vector<string> tableInVector;
+
+    getline(file, table);
+    string s = "";
+    string tmp = "";
+    tmp += table[0];
+    counter = stoi(tmp);
+    for (int i = 2; i < table.size(); i++) {
+        if (table[i] == '|') {
+            tableInVector.push_back(s);
+            s = "";
+            continue;
+        }
+        if ((i < table.size() - 1) && (table[i] == '-' && table[i + 1] == '-')) {
+            s += '\n';
+            i += 2;
+        }
+        s += table[i];
+    }
+    
+    tableInVector.push_back(s);
+
+    for (auto p: tableInVector) {
+        alphabet.push_back(p[0]);
+        freq.push_back(stoi(p.substr(2)));
+    }
+
+
+    while (file.get((char &)byte)) {
+        for (int i = 7; i >= 0; i--) {
+            unsigned char tmp = (byte >> i);
+            if (tmp & mask)
+                encode += '1';
+            else
+                encode += '0';
+        }
+    }
+    encode = encode.substr(0, encode.size() - (8 - counter));
+    return encode;
+}
+
+
+void Coding(ifstream& input, ofstream& out) {
+    if (!input.is_open() || !out.is_open()) {
+        cout << "Files is not opened!!!\n";
+        exit(1);
+    }
+
+    string sourceText = "";
+    string encode = "";
+    vector<char> alphabet;
+    vector<uint32_t> freq;
+
+    char current;
+    while (input.get(current))
+        sourceText += current;
+    
+    sourceText.push_back(BREAK_SYMBOL);
+
+    alphabet = GetAlphabet(sourceText);
+    freq = GetFrequency(sourceText);
+
+    cout << "Table:\n";
+    PrintTable(alphabet, freq);
+
+    encode = ArithmeticEncoding(sourceText, alphabet, freq);
+
+    cout << "Encode: " << encode << endl;
+
+    WriteToFile(encode, out, alphabet, freq);
+}
+
+
+void Decoding(ifstream& input, ofstream& out) {
+    if (!input.is_open() || !out.is_open()) {
+        cout << "Files is not opened!!!\n";
+        exit(1);
+    }
+    string encode = "";
+    string decode = "";
+    vector<char> alphabet;
+    vector<uint32_t> freq;
+
+    encode = ReadInFile(input, alphabet, freq);
+    cout << "Table: \n";
+    PrintTable(alphabet, freq);
+    decode = ArithmeticDecoding(encode, alphabet, freq);
+
+    cout << "Table: \n";
+    PrintTable(alphabet, freq);
+
+    cout << "Decode: " << decode << endl;
+    out << decode;
+}
+
+
 int main() {
-    string text = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
-    text.push_back(BREAK_SYMBOL); 
-
-    vector<char> al = GetAlphabet(text);
-    vector<uint32_t> freq = GetFrequency(text);
+    int choice = 0;
+    cout << "Arithmetic coding. Choose:" << endl;
+    cout << "1: Coder" << endl;
+    cout << "2: Decoder" << endl;
     
-    PrintTable(al, freq);
-    
-    string encode = ArithmeticEncoding(text, al, freq);
+    cin >> choice;
 
-    cout << encode << endl;
+    if (choice == 1) {
+        ifstream in("text.txt");
+        ofstream out("encode.txt");
 
-    string decode = ArithmeticDecoding(encode, al, freq);
+        Coding(in, out);
+    } else if (choice == 2) {
+        ifstream input("encode.txt");
+        ofstream out("decode.txt");
 
-    cout << decode << endl;
-    
+        Decoding(input, out);
+    } else 
+        cout << "Choose from list!!!" << endl;
+
     return 0;
 }
