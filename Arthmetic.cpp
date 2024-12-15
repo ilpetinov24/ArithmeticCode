@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <chrono>
 
 #define BREAK_SYMBOL  '\0'
 #define EOF_SYMBOL    '-'
@@ -371,6 +372,20 @@ string ReadInFile(ifstream& file, vector<char>& alphabet, vector<uint32_t>& freq
 }
 
 
+size_t getFileSize(const string& fileName) {
+    ifstream file(fileName, ios::binary | ios::ate);
+
+    if (!file.is_open()) {
+        cout << "File is not opened\n";
+        exit(1);
+    }
+    size_t result = (size_t)file.tellg();
+    file.close();
+    return result;
+
+}
+
+
 void Coding(ifstream& input, ofstream& out) {
     if (!input.is_open() || !out.is_open()) {
         cout << "Files is not opened!!!\n";
@@ -393,12 +408,25 @@ void Coding(ifstream& input, ofstream& out) {
 
     cout << "Table:\n";
     PrintTable(alphabet, freq);
-
+    auto start = chrono::high_resolution_clock::now();
     encode = ArithmeticEncoding(sourceText, alphabet, freq);
+    auto end = chrono::high_resolution_clock::now();
 
-    cout << "Encode: " << encode << endl;
+    chrono::duration<double> elapsed = end - start; 
+
+    cout << "Compression time in sec: " << (double)elapsed.count() << endl; 
+
+    // cout << "Encode: " << encode << endl;
 
     WriteToFile(encode, out, alphabet, freq);
+
+    input.close();
+    out.close();
+
+    size_t sizeCompressedFile = getFileSize("encode.txt");
+    size_t sizeSourceFile = getFileSize("text.txt");
+    cout << (double)sizeCompressedFile / (double)sizeCompressedFile << endl;
+    cout << "Compressed ratio: " << ((double)sizeCompressedFile / (double)sizeSourceFile) * 100 << "%" << endl; 
 }
 
 
@@ -413,14 +441,19 @@ void Decoding(ifstream& input, ofstream& out) {
     vector<uint32_t> freq;
 
     encode = ReadInFile(input, alphabet, freq);
-    cout << "Table: \n";
-    PrintTable(alphabet, freq);
+    // cout << "Table: \n";
+    // PrintTable(alphabet, freq);
+    auto start = chrono::high_resolution_clock::now();
     decode = ArithmeticDecoding(encode, alphabet, freq);
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start; 
 
-    cout << "Table: \n";
-    PrintTable(alphabet, freq);
+    cout << "Decompression time in sec: " << (double)elapsed.count() << endl; 
 
-    cout << "Decode: " << decode << endl;
+    // cout << "Table: \n";
+    // PrintTable(alphabet, freq);
+
+    // cout << "Decode: " << decode << endl;
     out << decode;
 }
 
