@@ -8,7 +8,7 @@
 #include <chrono>
 
 #define BREAK_SYMBOL  '\0'
-#define EOF_SYMBOL    '-'
+#define EOF_SYMBOL    '_'
 
 // Константы для нормализации
 #define HIGH          65536
@@ -27,7 +27,7 @@ void PrintTable(vector<char> al, vector<uint32_t> freq) {
 }
 
 
-/* Функция для формирования алфавита. 
+/* Функция для формирования алфавита.
    Функция возвращает массив символов, которые встречались в тексте. */
 vector<char> GetAlphabet(const string& sourceText) {
     vector<char> alphabet; // Алфавит
@@ -35,7 +35,7 @@ vector<char> GetAlphabet(const string& sourceText) {
     alphabet.push_back(EOF_SYMBOL);
 
     // Формирования алфавита
-    for (auto c: sourceText) {
+    for (auto c : sourceText) {
         // Флаг для проверки символа в алфавите
         bool flag = false;
         for (int i = 0; i < alphabet.size(); i++) {
@@ -46,7 +46,7 @@ vector<char> GetAlphabet(const string& sourceText) {
                 break;
             }
         }
-        
+
         // Если символа нету в алфавите, то добавляем его
         if (!flag)
             alphabet.push_back(c);
@@ -64,7 +64,7 @@ vector<uint32_t> GetFrequency(const string& sourceText) {
     vector<uint32_t> frequency(alphabet.size()); // Таблица частот
 
     for (int i = 0; i < alphabet.size(); i++) {
-        for (auto c: sourceText)
+        for (auto c : sourceText)
             if (alphabet[i] == c)
                 frequency[i]++;
 
@@ -99,7 +99,7 @@ int GetSymbolInAlpha(const string& text, const int& i, const vector<char>& alpha
 /* Ф-ия для переноса найденных битов в output. */
 void BitsToAdd(string& output, bool bit, int bitsToAdd) {
     output += to_string(bit);
-    
+
     while (bitsToAdd > 0) {
         output += to_string(!bit);
         bitsToAdd--;
@@ -113,10 +113,10 @@ void BitsToAdd(string& output, bool bit, int bitsToAdd) {
 string ArithmeticEncoding(const string& sourceText, const vector<char>& alphabet, const vector<uint32_t>& freq) {
     string encode = "";                // Закодированная строка
     int textLen = sourceText.length(); // Длина исходного текста
-    
+
     // Интервалы
-    uint32_t high  = HIGH - 1;
-    uint32_t low   = 0;
+    uint32_t high = HIGH - 1;
+    uint32_t low = 0;
     uint32_t range = 0;
 
     uint32_t del = freq[alphabet.size() - 1];
@@ -128,15 +128,15 @@ string ArithmeticEncoding(const string& sourceText, const vector<char>& alphabet
     while (i < textLen) {
         current = GetSymbolInAlpha(sourceText, i, alphabet);
         i++;
-        
+
         range = high - low + 1;
         high = low + (range * freq[current]) / del - 1;
         low = low + (range * freq[current - 1]) / del;
 
         // cout << low << "; " << high << endl;
-        
+
         // Нормализация интервала
-        for(;;) {
+        for (;;) {
             if (high < HALF) {
                 BitsToAdd(encode, 0, bitsToAdd);
                 bitsToAdd = 0;
@@ -146,13 +146,15 @@ string ArithmeticEncoding(const string& sourceText, const vector<char>& alphabet
                 bitsToAdd = 0;
                 low -= HALF;
                 high -= HALF;
-            } else if (low >= QUARTER && high < THIRD_QUARTER) {
+            }
+            else if (low >= QUARTER && high < THIRD_QUARTER) {
                 bitsToAdd++;
                 low -= QUARTER;
                 high -= QUARTER;
-            } else break;
+            }
+            else break;
 
-            low  = 2 * low;
+            low = 2 * low;
             high = 2 * high + 1;
         }
     }
@@ -175,7 +177,7 @@ uint32_t Read16Bit(const string& encode, int& bitsCount) {
             mask = 1;
         }
     }
-    
+
     return value;
 }
 
@@ -185,12 +187,15 @@ int AddBit(const string& encode, int value, int currentBit, bool& flag) {
 
     if (flag == 1) {
         a.reset(0);
-    } else if (currentBit >= encode.length()) {
+    }
+    else if (currentBit >= encode.length()) {
         a.set(0);
         flag = 1;
-    } else if (encode[currentBit] == '1') {
+    }
+    else if (encode[currentBit] == '1') {
         a.set(0);
-    } else if (encode[currentBit] == '0') {
+    }
+    else if (encode[currentBit] == '0') {
         a.reset(0);
     }
     value = (uint32_t)(a.to_ulong());
@@ -208,10 +213,10 @@ string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, co
     uint32_t high = HIGH - 1;
     uint32_t value = 0;
     uint32_t range = 0;
-    
+
     uint32_t frequence = 0;
     uint32_t del = frequency[alphabet.size() - 1];
-    
+
     int currentBit = 0;
     value = Read16Bit(encode, currentBit);
     int notReadBits = 16 - currentBit;
@@ -221,7 +226,7 @@ string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, co
     }
 
     bool flag = false;
-    
+
     for (int i = 1; i < del; i++) {
         range = high - low + 1;
         frequence = (((value - low) + 1) * del - 1) / range;
@@ -246,15 +251,18 @@ string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, co
         for (;;) {
             if (high < HALF) {
                 // Ничего не делаем
-            } else if (low >= HALF) {
+            }
+            else if (low >= HALF) {
                 low -= HALF;
                 high -= HALF;
                 value -= HALF;
-            } else if (low >= QUARTER && high < THIRD_QUARTER) {
+            }
+            else if (low >= QUARTER && high < THIRD_QUARTER) {
                 low -= QUARTER;
                 high -= QUARTER;
                 value -= QUARTER;
-            } else { 
+            }
+            else {
                 break;
             }
 
@@ -268,6 +276,42 @@ string ArithmeticDecoding(const string& encode, const vector<char>& alphabet, co
     return decode;
 }
 
+void WriteBinNumInFile(ofstream& out, int number) {
+    unsigned char mask = 1;
+    unsigned char byte = 0;
+    bitset<32> binNumber(number);
+    string binStr = binNumber.to_string();
+    int counter = 0;
+    for (int i = 0; i < binStr.length(); i++) {
+        byte <<= mask;
+
+        if (binStr[i] == '1') {
+            byte |= mask;
+        }
+        counter++;
+        if (counter == 8) {
+            counter = 0;
+            out.put(byte);
+            byte = 0;
+        }
+    }
+}
+
+int ReadBinNumInFile(ifstream& in) {
+    unsigned char mask = 1;
+    int result = 0;
+    string binStr = "";
+
+    for (int i = 0; i < 4; i++) {
+        unsigned char a = in.get();
+        bitset<8> b(a);
+        binStr += b.to_string();
+    }
+
+    bitset<32> tmp(binStr);
+
+    return tmp.to_ullong();
+}
 
 // Функция для записи закодированных данных в файл
 void WriteToFile(const string& encode, ofstream& out, const vector<char>& alphabet, const vector<uint32_t>& freq) {
@@ -276,11 +320,11 @@ void WriteToFile(const string& encode, ofstream& out, const vector<char>& alphab
     size_t counter = 0;
 
     ofstream wtmpFile("tmp.txt");
-    
+
     counter = 0;
     for (int i = 0; i < encode.size(); i++) {
         byte <<= mask;
-        
+
         if (encode[i] == '1')
             byte |= mask;
 
@@ -302,16 +346,17 @@ void WriteToFile(const string& encode, ofstream& out, const vector<char>& alphab
     wtmpFile.close();
     ifstream rtmpFile("tmp.txt");
 
-    out << counter << "|";
+    out << counter;
 
-    for (int i = 0; i < alphabet.size() - 1; i++) {
+    for (int i = 0; i < alphabet.size(); i++) {
         if (alphabet[i] == '\n') {
-            out << "--" << ':' << freq[i] << '|';
+            out << "_";
+            WriteBinNumInFile(out, freq[i]);
             continue;
         }
-        out << alphabet[i] << ":" << freq[i] << '|';
+        out << alphabet[i];
+        WriteBinNumInFile(out, freq[i]);
     }
-    out << alphabet[alphabet.size() - 1] << ":" << freq[alphabet.size() - 1];
 
     out << "\n";
 
@@ -328,37 +373,25 @@ string ReadInFile(ifstream& file, vector<char>& alphabet, vector<uint32_t>& freq
     string encode = "";
     unsigned char byte;
     unsigned char mask = 1;
-    size_t counter;
-    string table = "";
-    vector<string> tableInVector;
+    size_t counter = file.get() - '0';
 
-    getline(file, table);
-    string s = "";
-    string tmp = "";
-    tmp += table[0];
-    counter = stoi(tmp);
-    for (int i = 2; i < table.size(); i++) {
-        if (table[i] == '|') {
-            tableInVector.push_back(s);
-            s = "";
+    char current;
+    while (file.get(current)) {
+        if (current == '_') {
+            alphabet.push_back('\n');
+            freq.push_back(ReadBinNumInFile(file));
             continue;
         }
-        if ((i < table.size() - 1) && (table[i] == '-' && table[i + 1] == '-')) {
-            s += '\n';
-            i += 2;
+        if (current == '\n') {
+            break;
         }
-        s += table[i];
-    }
-    
-    tableInVector.push_back(s);
 
-    for (auto p: tableInVector) {
-        alphabet.push_back(p[0]);
-        freq.push_back(stoi(p.substr(2)));
+        alphabet.push_back(current);
+        freq.push_back(ReadBinNumInFile(file));
     }
 
 
-    while (file.get((char &)byte)) {
+    while (file.get((char&)byte)) {
         for (int i = 7; i >= 0; i--) {
             unsigned char tmp = (byte >> i);
             if (tmp & mask)
@@ -368,6 +401,7 @@ string ReadInFile(ifstream& file, vector<char>& alphabet, vector<uint32_t>& freq
         }
     }
     encode = encode.substr(0, encode.size() - (8 - counter));
+
     return encode;
 }
 
@@ -400,7 +434,7 @@ void Coding(ifstream& input, ofstream& out) {
     char current;
     while (input.get(current))
         sourceText += current;
-    
+
     sourceText.push_back(BREAK_SYMBOL);
 
     alphabet = GetAlphabet(sourceText);
@@ -412,9 +446,9 @@ void Coding(ifstream& input, ofstream& out) {
     encode = ArithmeticEncoding(sourceText, alphabet, freq);
     auto end = chrono::high_resolution_clock::now();
 
-    chrono::duration<double> elapsed = end - start; 
+    chrono::duration<double> elapsed = end - start;
 
-    cout << "Compression time in sec: " << (double)elapsed.count() << endl; 
+    cout << "Compression time in sec: " << (double)elapsed.count() << endl;
 
     // cout << "Encode: " << encode << endl;
 
@@ -426,7 +460,7 @@ void Coding(ifstream& input, ofstream& out) {
     size_t sizeCompressedFile = getFileSize("encode.txt");
     size_t sizeSourceFile = getFileSize("text.txt");
     cout << (double)sizeCompressedFile / (double)sizeCompressedFile << endl;
-    cout << "Compressed ratio: " << ((double)sizeCompressedFile / (double)sizeSourceFile) * 100 << "%" << endl; 
+    cout << "Compressed ratio: " << ((double)sizeCompressedFile / (double)sizeSourceFile) * 100 << "%" << endl;
 }
 
 
@@ -441,14 +475,14 @@ void Decoding(ifstream& input, ofstream& out) {
     vector<uint32_t> freq;
 
     encode = ReadInFile(input, alphabet, freq);
-    // cout << "Table: \n";
-    // PrintTable(alphabet, freq);
+    cout << "Table: \n";
+    PrintTable(alphabet, freq);
     auto start = chrono::high_resolution_clock::now();
     decode = ArithmeticDecoding(encode, alphabet, freq);
     auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed = end - start; 
+    chrono::duration<double> elapsed = end - start;
 
-    cout << "Decompression time in sec: " << (double)elapsed.count() << endl; 
+    cout << "Decompression time in sec: " << (double)elapsed.count() << endl;
 
     // cout << "Table: \n";
     // PrintTable(alphabet, freq);
@@ -459,11 +493,16 @@ void Decoding(ifstream& input, ofstream& out) {
 
 
 int main() {
+    setlocale(LC_ALL, "ru_RU.cp1251");
+    system("chcp 1251");
+    system("cls");
+    std::locale::global(std::locale(""));
+
     int choice = 0;
     cout << "Arithmetic coding. Choose:" << endl;
     cout << "1: Coder" << endl;
     cout << "2: Decoder" << endl;
-    
+
     cin >> choice;
 
     if (choice == 1) {
@@ -471,12 +510,14 @@ int main() {
         ofstream out("encode.txt");
 
         Coding(in, out);
-    } else if (choice == 2) {
+    }
+    else if (choice == 2) {
         ifstream input("encode.txt");
         ofstream out("decode.txt");
 
         Decoding(input, out);
-    } else 
+    }
+    else
         cout << "Choose from list!!!" << endl;
 
     return 0;
