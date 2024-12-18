@@ -8,7 +8,7 @@
 #include <chrono>
 
 #define BREAK_SYMBOL  '\0'
-#define EOF_SYMBOL    '_'
+#define EOF_SYMBOL    '$'
 
 // Константы для нормализации
 #define HIGH          65536
@@ -319,7 +319,7 @@ void WriteToFile(const string& encode, ofstream& out, const vector<char>& alphab
     unsigned char mask = 1;
     size_t counter = 0;
 
-    ofstream wtmpFile("tmp.txt");
+    ofstream wtmpFile("tmp.txt", ios::binary);
 
     counter = 0;
     for (int i = 0; i < encode.size(); i++) {
@@ -344,7 +344,7 @@ void WriteToFile(const string& encode, ofstream& out, const vector<char>& alphab
     }
 
     wtmpFile.close();
-    ifstream rtmpFile("tmp.txt");
+    ifstream rtmpFile("tmp.txt", ios::binary);
 
     out << counter;
 
@@ -497,7 +497,7 @@ int main() {
     system("chcp 1251");
     system("cls");
     std::locale::global(std::locale(""));
-
+    
     int choice = 0;
     cout << "Arithmetic coding. Choose:" << endl;
     cout << "1: Coder" << endl;
@@ -506,14 +506,14 @@ int main() {
     cin >> choice;
 
     if (choice == 1) {
-        ifstream in("text.txt");
-        ofstream out("encode.txt");
+        ifstream in("text.txt", ios::binary);
+        ofstream out("encode.txt", ios::binary);
 
         Coding(in, out);
     }
     else if (choice == 2) {
-        ifstream input("encode.txt");
-        ofstream out("decode.txt");
+        ifstream input("encode.txt", ios::binary);
+        ofstream out("decode.txt", ios::binary);
 
         Decoding(input, out);
     }
