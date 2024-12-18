@@ -442,13 +442,9 @@ void Coding(ifstream& input, ofstream& out) {
 
     cout << "Table:\n";
     PrintTable(alphabet, freq);
-    auto start = chrono::high_resolution_clock::now();
+
     encode = ArithmeticEncoding(sourceText, alphabet, freq);
-    auto end = chrono::high_resolution_clock::now();
 
-    chrono::duration<double> elapsed = end - start;
-
-    cout << "Compression time in sec: " << (double)elapsed.count() << endl;
 
     // cout << "Encode: " << encode << endl;
 
@@ -477,13 +473,7 @@ void Decoding(ifstream& input, ofstream& out) {
     encode = ReadInFile(input, alphabet, freq);
     cout << "Table: \n";
     PrintTable(alphabet, freq);
-    auto start = chrono::high_resolution_clock::now();
     decode = ArithmeticDecoding(encode, alphabet, freq);
-    auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed = end - start;
-
-    cout << "Decompression time in sec: " << (double)elapsed.count() << endl;
-
     // cout << "Table: \n";
     // PrintTable(alphabet, freq);
 
@@ -506,16 +496,26 @@ int main() {
     cin >> choice;
 
     if (choice == 1) {
+        auto start = chrono::high_resolution_clock::now();
         ifstream in("text.txt", ios::binary);
         ofstream out("encode.txt", ios::binary);
 
         Coding(in, out);
+        auto end = chrono::high_resolution_clock::now();
+        auto elapsed = chrono::duration_cast<chrono::milliseconds>(end - start);
+
+        cout << "Decompression time in msec: " << elapsed.count() << endl;
     }
     else if (choice == 2) {
+        auto start = chrono::high_resolution_clock::now();
         ifstream input("encode.txt", ios::binary);
         ofstream out("decode.txt", ios::binary);
 
         Decoding(input, out);
+        auto end = chrono::high_resolution_clock::now();
+        auto elapsed = chrono::duration_cast<chrono::milliseconds>(end - start);
+
+        cout << "Decompression time in msec: " << elapsed.count() << endl;
     }
     else
         cout << "Choose from list!!!" << endl;
